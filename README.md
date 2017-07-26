@@ -1,2 +1,2 @@
 # ThorNoise
-Library for making noise in python2, python3 and C
+Library for making noise in Python2, Python3 and C
