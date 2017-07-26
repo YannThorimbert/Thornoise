@@ -9,8 +9,8 @@ is not crucial.
 from __future__ import print_function, division
 import numpy as np
 from numpy.polynomial.polynomial import polyval2d
-import colorscale
-import noisegen as ng
+import thornoise.numpygen.colorscale as colorscale
+import thornoise.numpygen.noisegen as ng
 
 if __name__ == "__main__":
     # First we choose the type of noise

@@ -3,7 +3,7 @@
 no dependency, for Python2 and Python3."""
 from __future__ import print_function
 import random, math
-import noisegen as ng
+import thornoise.purepython.noisegen as ng
 
 if __name__ == "__main__":
     # 1. We define some constants
