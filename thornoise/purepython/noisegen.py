@@ -10,12 +10,22 @@ try:
 except:
     print("Could not import pygame. build_surface function won't work.")
 
-def generate_terrain(n_octaves, size, chunk=(0,0), persistance=2.):
+
+#cache variables (not necessary used)
+
+caches = {}
+SMOOTH, DTERM, IDX, S = None, None, None, None
+
+
+
+def generate_terrain(size, n_octaves=None, chunk=(0,0), persistance=2.):
     """
     Returns a <S> times <S> array of heigth values for <n_octaves>, using
     <chunk> as seed.
     """
     S = size
+    if n_octaves is None:
+        n_octaves = int(math.log(S,2))
     h, min_res = _gen_hmap(n_octaves, S, chunk)
     terrain = [[0. for x in range(S)] for y in range(S)]
     res = int(S)
@@ -61,7 +71,7 @@ def generate_terrain(n_octaves, size, chunk=(0,0), persistance=2.):
         amplitude /= persistance
     return terrain
 
-def generate_terrain_cache(n_octaves, size, chunk=(0,0), persistance=2.):
+def generate_terrain_cache(size, n_octaves=None, chunk=(0,0), persistance=2.):
     """
     Returns a <S> times <S> array of heigth values for <n_octaves>, using
     <mapcoord> as seed.
@@ -69,6 +79,9 @@ def generate_terrain_cache(n_octaves, size, chunk=(0,0), persistance=2.):
     Makes use of cached values. Slightly faster than not cached version.
     """
     S = size
+    if n_octaves is None:
+        n_octaves = int(math.log(S,2))
+    SMOOTH, DTERM, IDX = get_cache(n_octaves, S)
     h, min_res = _gen_hmap(n_octaves, S, chunk)
     terrain = [[0. for x in range(S)] for y in range(S)]
     res = int(S)
@@ -138,7 +151,7 @@ def pix(x,y,n_octaves,h,persistance):
         amplitude /= persistance
     return tot
 
-def generate_terrain_local(n_octaves, size, chunk=(0,0), persistance=2.):
+def generate_terrain_local(size, n_octaves=None, chunk=(0,0), persistance=2.):
     """
     Returns a <S> times <S> array of heigth values for <n_octaves>, using
     <chunk> as seed.
@@ -148,7 +161,12 @@ def generate_terrain_local(n_octaves, size, chunk=(0,0), persistance=2.):
     This function is ~2x slower for large terrains, but faster when only a
     fraction of the terrain need to be generated.
     """
+    global S
+    global SMOOTH, DTERM, IDX
     S = size
+    if n_octaves is None:
+        n_octaves = int(math.log(S,2))
+    SMOOTH, DTERM, IDX = get_cache(n_octaves, S)
     h, min_res = _gen_hmap(n_octaves, S, chunk)
     terrain = [[0. for x in range(S)] for y in range(S)]
     for x in range(S): #here x is coord of pixel
@@ -180,7 +198,6 @@ class ColorScale: #tricky structure to obtain fast colormap from heightmap
                 b = kfactor*c1[2] + factor*c2[2]
                 return (r,g,b)
         return self.default
-
 
 
 def _gen_hmap(n_octaves, S, chunk):
@@ -219,9 +236,11 @@ def _gen_hmap(n_octaves, S, chunk):
     return h, min_res
 
 
-
 def get_cache(n_octaves, S):
     """Build cache that is used by some terrain generation functions."""
+    if (n_octaves, S) in caches:
+        return caches[(n_octaves,S)]
+    #else
     min_res = int(S / 2**(n_octaves-1))
     res = int(S)
     step = res//min_res
@@ -252,7 +271,8 @@ def get_cache(n_octaves, S):
                 x_rel = 0.
         res //= 2
         step = res//min_res
-    return smoothx_cache, diag_term_cache, idx_cache
+    caches[(n_octaves,S)] = (smoothx_cache, diag_term_cache, idx_cache)
+    return caches[(n_octaves,S)]
 
 
 def normalize(terrain):

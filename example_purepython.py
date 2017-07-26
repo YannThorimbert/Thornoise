@@ -6,12 +6,7 @@ import random, math
 import thornoise.purepython.noisegen as ng
 
 if __name__ == "__main__":
-    # 1. We define some constants
-    random.seed(14000000) #choose a seed
-    S = 256 #Resolution of generated terrain
-    MAX_OCTAVES = int(math.log(S,2))
-    N_OCTAVES = MAX_OCTAVES #you can choose to use less (but not more) octaves
-    SMOOTH, DTERM, IDX = ng.get_cache(MAX_OCTAVES, S)
+    #declare a colorscale
     summer =  ng.ColorScale([  [(0,0,0), (0,0,100), 0.],            #0. deep
                          [(0,0,100), (0,30,255), 0.52],             #1. shallow
                          [(0,30,255), (137, 131, 200), 0.597],      #2. sand
@@ -23,14 +18,16 @@ if __name__ == "__main__":
                          [(255,255,255), (255,255,255), 10.]],      #7. snow
                          minval = -10.)
     # We generate the actual terrain or noise (here we use all arguments)
-    terrain = ng.generate_terrain(n_octaves=MAX_OCTAVES,
-                                    size=S,
-                                    chunk=(0,0),
+    random.seed(14000000) #choose a seed
+    resolution = 256 #Resolution of generated terrain
+    terrain = ng.generate_terrain(  size=resolution,
+                                    n_octaves=8,
+                                    chunk=(0,0), #chunks are tilables
                                     persistance=2.)
     #generation tiwh default arguments, and with other methods
     #note that each generation method takes the same arguments
-##    terrain = ng.generate_terrain_cache(MAX_OCTAVES, S)
-##    terrain = ng.generate_terrain_local(MAX_OCTAVES, S)
+##    terrain = ng.generate_terrain_cache(resolution) #first time is slow (build cache)
+##    terrain = ng.generate_terrain_local(resolution) #first time is slow (build cache)
     ng.normalize(terrain)
     # Visualization with PYGAME:
     HAS_PYGAME = False
@@ -43,7 +40,7 @@ if __name__ == "__main__":
               "you can use this module's 'generate_terrain_xxx' functions "+\
               "to generate terrain or noise in a 2D array.")
     if HAS_PYGAME:
-        screen = pygame.display.set_mode((S,S))
+        screen = pygame.display.set_mode((resolution,resolution))
         s = ng.build_surface(terrain, summer) #we build the surface
         screen.blit(s,(0,0))
         pygame.display.flip()
